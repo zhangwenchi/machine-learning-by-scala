@@ -59,4 +59,10 @@ class MathUtilsTest extends FunSuite {
         assert(MathUtils.leastSquarePolyMethod(x1, y1, 2).map(MathUtils.round8) == Seq(-16.30863338, 0.97718246, -76.16600883, 543.80371844, -2.97619048, 15.07142857, -271.48126149))
     }
 
+    test("MathUtilsTest.sigmoid") {
+        assert(MathUtils.sigmoid(0) == 0.5)
+        assert(MathUtils.sigmoid(1) == 0.73105858)
+        assert(MathUtils.sigmoid(-1) == 0.26894142)
+    }
+
 }

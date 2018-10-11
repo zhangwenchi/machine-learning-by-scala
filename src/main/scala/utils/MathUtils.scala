@@ -108,7 +108,7 @@ object MathUtils {
     }
 
     /**
-      *
+      * 最小二乘法的通用n次计算 [n元n次]
       */
     def leastSquarePolyMethod(x: Seq[Seq[Double]], y: Seq[Double], poly:Int): Seq[Double] = {
         assert(x.length == y.length)
@@ -121,9 +121,7 @@ object MathUtils {
         leastSquareMethod(processX, y)
     }
 
-
-    /**
-      * 参数估计的最大似然法 (maximum likelihood)
-      */
-
+    def sigmoid(z: Double): Double = {
+        round8(1.0 / (1.0 + math.pow(math.E, -z)))
+    }
 }

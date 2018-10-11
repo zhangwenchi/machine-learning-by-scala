@@ -155,4 +155,47 @@ object Evaluation {
         MathUtils.round8(area)
     }
 
+    def calculateRegressionError(predictions: Seq[Double], labels: Seq[Double], method: String = "mse"): Double = {
+        method match {
+            case "mse" => Evaluation.meanSquareError(predictions, labels)
+            case "rmse" => Evaluation.rootMeanSquareError(predictions, labels)
+            case "rs" => Evaluation.rSquared(predictions, labels)
+            case "mae" => Evaluation.meanAbsoluteError(predictions, labels)
+            case "mape" => Evaluation.meanAbsolutePercentError(predictions, labels)
+            case _ =>  System.err.println("The method is unknown or not implemented."); 0.0
+        }
+    }
+
+    def meanSquareError(y: Seq[Double], targets: Seq[Double]): Double = {
+        assert(y.length == targets.length)
+        MathUtils.round8(1.0 / y.length * y.zip(targets).foldLeft(0.0)((v1, v2) => v1 + math.pow(v2._1 - v2._2, 2)))
+    }
+
+    def rootMeanSquareError(y: Seq[Double], targets: Seq[Double]): Double = {
+        MathUtils.round8(math.sqrt(meanSquareError(y, targets)))
+    }
+
+    /**
+      * r-squared应该是 1 - sum(pow(yi - targetMean, 2)) / sum(pow(targeti - targetMean, 2))
+      * 但是看了下 python中 sklearn.metrics.r2_score的实现是 1 - sum(pow(yi - targeti, 2)) / sum(pow(targeti - targetMean, 2))
+      * 这里采用python中的写法
+      */
+    def rSquared(y: Seq[Double], targets: Seq[Double]): Double = {
+        assert(y.length == targets.length)
+        val mean = targets.sum / targets.length
+        if (targets.count(_ == mean) == targets.length) return 0.0
+        MathUtils.round8(1 - y.zip(targets).foldLeft(0.0)((v1, v2) => v1 + math.pow(v2._1 - v2._2, 2)) /
+            targets.foldLeft(0.0)((v1, v2) => v1 + math.pow(v2 - mean, 2)))
+    }
+
+    def meanAbsoluteError(y: Seq[Double], targets: Seq[Double]): Double = {
+        assert(y.length == targets.length)
+        MathUtils.round8(1.0 / y.length * y.zip(targets).foldLeft(0.0)((v1, v2) => v1 + math.abs(v2._1 - v2._2)))
+    }
+
+    def meanAbsolutePercentError(y: Seq[Double], targets: Seq[Double]): Double = {
+        assert(y.length == targets.length)
+        MathUtils.round8(1.0 / y.length * y.zip(targets).foldLeft(0.0)((v1, v2) => v1 + math.abs(v2._1 - v2._2) / v2._2))
+    }
+
 }

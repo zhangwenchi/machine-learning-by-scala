@@ -83,5 +83,48 @@ class EvaluationTest extends FunSuite {
         assert(Evaluation.calculateCurveArea(Evaluation.ROC(labels, predictionsPossibility).map(v => (v._1, v._2))) == 0.875)
     }
 
+    test("EvaluationTest.meanSquareError") {
+        assert(Evaluation.meanSquareError(Seq(1.0, 2, 3), Seq(1.0, 2, 3)) == 0.0)
+        assert(Evaluation.meanSquareError(Seq(1.0, 2, 3), Seq(1.0, 2, 9)) == 12.0)
+        assert(Evaluation.meanSquareError(Seq(1.0, 1, 3), Seq(1.0, 2, 4)) == MathUtils.round8(2.0 / 3))
+        assert(Evaluation.meanSquareError(Seq(1.0, 2, 3), Seq(1.0, 2.9, 3)) == 0.27)
+    }
 
+    test("EvaluationTest.rootMeanSquareError") {
+        assert(Evaluation.rootMeanSquareError(Seq(1.0, 2, 3), Seq(1.0, 2, 3)) == 0.0)
+        assert(Evaluation.rootMeanSquareError(Seq(1.0, 2, 3), Seq(1.0, 2, 9)) == MathUtils.round8(math.sqrt(12.0)))
+        assert(Evaluation.rootMeanSquareError(Seq(1.0, 1, 3), Seq(1.0, 2, 4)) == MathUtils.round8(math.sqrt(2.0 / 3)))
+        assert(Evaluation.rootMeanSquareError(Seq(1.0, 2, 3), Seq(1.0, 2.9, 3)) == MathUtils.round8(math.sqrt(0.27)))
+    }
+
+    test("EvaluationTest.rSquared") {
+        assert(Evaluation.rSquared(Seq(1.0, 2, 3), Seq(1.0, 2, 3)) == 1.0)
+        assert(Evaluation.rSquared(Seq(1.0, 2, 3), Seq(2.0, 2, 2)) == 0.0)
+        assert(Evaluation.rSquared(Seq(2.5, 0.0, 2, 8), Seq(3, -0.5, 2, 7)) == 0.94860814)
+        assert(Evaluation.rSquared(Seq(1.0, 2, 3), Seq(1.0, 2, 9)) == 0.05263158)
+        assert(Evaluation.rSquared(Seq(1.0, 1, 3), Seq(1.0, 2, 4)) == 0.57142857)
+        assert(Evaluation.rSquared(Seq(1.0, 2, 3), Seq(1.0, 2.9, 3)) == 0.68110236)
+    }
+
+    test("EvaluationTest.meanAbsoluteError") {
+        assert(Evaluation.meanAbsoluteError(Seq(1.0, 2, 3), Seq(1.0, 2, 3)) == 0.0)
+        assert(Evaluation.meanAbsoluteError(Seq(1.0, 2, 3), Seq(1.0, 2, 9)) == 2)
+        assert(Evaluation.meanAbsoluteError(Seq(1.0, 1, 3), Seq(1.0, 2, 4.1)) == 0.7)
+        assert(Evaluation.meanAbsoluteError(Seq(1.0, 2, 3), Seq(1.0, 2.9, 3)) == 0.3)
+    }
+
+    test("EvaluationTest.meanAbsolutePercentError") {
+        assert(Evaluation.meanAbsolutePercentError(Seq(1.0, 2, 3), Seq(1.0, 2, 3)) == 0.0)
+        assert(Evaluation.meanAbsolutePercentError(Seq(1.0, 2, 3), Seq(1.0, 2, 12)) == 0.25)
+        assert(Evaluation.meanAbsolutePercentError(Seq(2.0, 2, 6), Seq(1.0, 1, 3)) == 1)
+        assert(Evaluation.meanAbsolutePercentError(Seq(1.0, 2.9, 3), Seq(1.0, 2, 3)) == 0.15)
+    }
+
+    test("EvaluationTest.calculateRegressionError") {
+        assert(Evaluation.calculateRegressionError(Seq(1.0, 2, 3), Seq(1.0, 2, 3)) == 0.0)
+        assert(Evaluation.calculateRegressionError(Seq(1.0, 1, 3), Seq(1.0, 2, 4), "rmse") == MathUtils.round8(math.sqrt(2.0 / 3)))
+        assert(Evaluation.calculateRegressionError(Seq(1.0, 1, 3), Seq(1.0, 2, 4), "rs") == 0.57142857)
+        assert(Evaluation.calculateRegressionError(Seq(1.0, 1, 3), Seq(1.0, 2, 4.1), "mae") == 0.7)
+        assert(Evaluation.calculateRegressionError(Seq(1.0, 2.9, 3), Seq(1.0, 2, 3), "mape") == 0.15)
+    }
 }
