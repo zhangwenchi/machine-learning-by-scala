@@ -1,5 +1,7 @@
 package utils
 
+import breeze.linalg.{DenseMatrix, det, inv}
+
 object MathUtils {
 
     def round8(value: Double): Double = try {
@@ -15,19 +17,6 @@ object MathUtils {
     def std(value: Seq[Double]): Double = {
         val avg = mean(value)
         if (value.nonEmpty) math.sqrt(value.map(x => math.pow(x - avg, 2)).sum / value.length) else -1
-    }
-
-    /**
-      * 最小二乘法的二维计算 [一元一次] (二项式的特殊形式，k,b可以直接根据公式给出)
-      * 最小二乘法的矩阵运算[多元多次](如n个特征)涉及到Jacobian matrix矩阵(由 xn/ym 的偏导组成，描述了最佳逼近)和矩阵的转置和逆，比较复杂
-      */
-    def leastSquareMethodLinear(x: Seq[Double], y: Seq[Double]): (Double, Double) = {
-        assert(x.length == y.length)
-        val xMean = x.sum / x.length
-        val w = x.zip(y).foldLeft(0.0)((v1, v2) => v1 + v2._2 * (v2._1 - xMean)) /
-            (x.foldLeft(0.0)(_ + Math.pow(_, 2)) - 1.0 / x.length * math.pow(x.sum, 2))
-        val b = 1.0 / x.length * x.zip(y).foldLeft(0.0)((v1, v2) => v1 + (v2._2 - w * v2._1))
-        (w, b)
     }
 
     /**
@@ -65,10 +54,23 @@ object MathUtils {
     }
 
     /**
-      * 最小二乘法的二维计算 [一元n次]
+      * 最小二乘法的二维计算 [一元一次] (二项式的特殊形式，k,b可以直接根据公式给出)
+      * 计算误差一般有两种方法，到直线的距离和与直线y值的差值，一般横轴纵轴没啥关系（计算距离需要用到两个维度的差值，所以一般用后者）
+      */
+    def leastSquareMethodOneDimensional(x: Seq[Double], y: Seq[Double]): (Double, Double) = {
+        assert(x.length == y.length)
+        val xMean = x.sum / x.length
+        val w = x.zip(y).foldLeft(0.0)((v1, v2) => v1 + v2._2 * (v2._1 - xMean)) /
+            (x.foldLeft(0.0)(_ + Math.pow(_, 2)) - 1.0 / x.length * math.pow(x.sum, 2))
+        val b = 1.0 / x.length * x.zip(y).foldLeft(0.0)((v1, v2) => v1 + (v2._2 - w * v2._1))
+        (w, b)
+    }
+
+    /**
+      * 一元的最小二乘法的计算 [一元n次]
       * @param poly: including pow(x, 0), 如果是要拟合2次函数则是3
       */
-    def leastSquareMethod(x: Seq[Double], y: Seq[Double])(poly: Int): Seq[Double] = {
+    def leastSquareMethodOneDimensional(x: Seq[Double], y: Seq[Double], poly: Int): Seq[Double] = {
         assert(x.length > poly)
         assert(x.length == y.length)
         assert(poly > 1)
@@ -81,5 +83,47 @@ object MathUtils {
         }
         augmentedMatrixCalculation(valueMatrix).reverse
     }
+
+    /**
+      * 最小二乘法的通用一次计算 [n元一次]
+      * 需要用到最小二乘法的矩阵形式
+      * W = (XT * X)-1 * XT * y, 其中X是[1, x], XT是转置, -1是逆
+      */
+    def leastSquareMethod(x: Seq[Seq[Double]], y: Seq[Double]): Seq[Double] = {
+        assert(x.length == y.length)
+        assert(x.head.length < x.length)
+        for (i <- x.indices) assert(x.head.length == x(i).length)
+
+        val mX = DenseMatrix(x.map(1.0 +: _): _*)
+        val mY = DenseMatrix(y: _*)
+
+        try {
+            val paramMatrix = inv(mX.t * mX) * mX.t * mY
+            paramMatrix.toArray.tail :+ paramMatrix.toArray.head
+        } catch {
+            case _: Throwable =>
+                System.err.println("Something wrong in inv in leastSquareMethod !")
+                Seq()
+        }
+    }
+
+    /**
+      *
+      */
+    def leastSquarePolyMethod(x: Seq[Seq[Double]], y: Seq[Double], poly:Int): Seq[Double] = {
+        assert(x.length == y.length)
+        assert(x.head.length < x.length)
+        assert(x.head.length * poly < x.length)
+        for (i <- x.indices) assert(x.head.length == x(i).length)
+
+        val processX = x.map(f => f.flatMap(v => {var y = Seq[Double](); for (i <- 1 to poly) y :+= math.pow(v, i); y.reverse}))
+
+        leastSquareMethod(processX, y)
+    }
+
+
+    /**
+      * 参数估计的最大似然法 (maximum likelihood)
+      */
 
 }
