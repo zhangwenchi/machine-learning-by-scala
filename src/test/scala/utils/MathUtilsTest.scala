@@ -52,6 +52,11 @@ class MathUtilsTest extends FunSuite {
         assert(MathUtils.leastSquareMethod(x1, y1).map(MathUtils.round8) == Seq(1, 2, 3, 9))
         val (x2, y2) = (Seq(Seq(2.0, 5, 8), Seq(3.0, 6, 4), Seq(8.0, 9, 3), Seq(2.0, 1, 1)), Seq(15.0, 26, 48, 21))
         assert(MathUtils.leastSquareMethod(x2, y2).map(MathUtils.round8) == Seq(3.3, 1.3, -1.6, 14.7))
+        val (x3, y3) = (Seq(Seq(1.1, 0.1, 1), Seq(1.0, 0.11, 1), Seq(2.0, 0.2, 1), Seq(2.0, 0.2, 2),
+            Seq(1.2, 0.1, 1), Seq(1.1, 0.11, 1), Seq(12.0, 0.2, 1), Seq(1.0, 0.2, 2)), Seq(15.0, 15, 18, 21, 15.0, 15, 25, 21))
+        println(MathUtils.leastSquareMethod(x3, y3).map(MathUtils.round8))
+        println(MathUtils.leastSquareMethod(x3, y3, 0.5).map(MathUtils.round8))
+        println(MathUtils.leastSquareMethod(x1, y1, 0.5).map(MathUtils.round8))
     }
 
     test("MathUtilsTest.leastSquarePolyMethod") {

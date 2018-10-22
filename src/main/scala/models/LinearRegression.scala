@@ -9,10 +9,10 @@ import utils.{Evaluation, MathUtils}
 class LinearRegression {
 
     var w: Seq[Double] = Seq()
-    var fitError: Double = -1.0
+    var fitError: Seq[Double] = Seq()
     var predictError: Seq[Double] = Seq()
 
-    def fit(x: Seq[Seq[Double]], y: Seq[Double], errorMethod: String = "mse", method: String = "lsm"): Unit = {
+    def fit(x: Seq[Seq[Double]], y: Seq[Double], errorMethod: String, method: String): Unit = {
         assert(x.nonEmpty && y.nonEmpty)
 
         method match {
@@ -22,8 +22,17 @@ class LinearRegression {
 
         if (w.nonEmpty) {
             val fitResults = fitResult(x)
-            fitError = Evaluation.calculateRegressionError(fitResults, y, errorMethod)
+            fitError :+= Evaluation.calculateRegressionError(fitResults, y, errorMethod)
         }
+    }
+
+    def fit(x: Seq[Seq[Double]], y: Seq[Double]): Unit = {
+        fit(x, y, "mse", "lsm")
+    }
+
+    def fit(x: Seq[Seq[Double]], y: Seq[Double], errorMethod: String): Unit = {
+        System.err.println("Attention: the string is the optimization method")
+        fit(x, y, errorMethod, "lsm")
     }
 
     def predict(x: Seq[Seq[Double]], y: Seq[Double] = Seq(), errorMethod: String = "mse"): Seq[Double] = {

@@ -88,17 +88,19 @@ object MathUtils {
       * 最小二乘法的通用一次计算 [n元一次]
       * 需要用到最小二乘法的矩阵形式
       * W = (XT * X)-1 * XT * y, 其中X是[1, x], XT是转置, -1是逆
+      * lambda > 0: 岭回归
       */
-    def leastSquareMethod(x: Seq[Seq[Double]], y: Seq[Double]): Seq[Double] = {
+    def leastSquareMethod(x: Seq[Seq[Double]], y: Seq[Double], lambda: Double = 0.0): Seq[Double] = {
         assert(x.length == y.length)
         assert(x.head.length < x.length)
+        assert(lambda >= 0.0)
         for (i <- x.indices) assert(x.head.length == x(i).length)
 
         val mX = DenseMatrix(x.map(1.0 +: _): _*)
         val mY = DenseMatrix(y: _*)
 
         try {
-            val paramMatrix = inv(mX.t * mX) * mX.t * mY
+            val paramMatrix = inv(mX.t * mX + lambda * DenseMatrix.eye[Double](mX.cols)) * mX.t * mY
             paramMatrix.toArray.tail :+ paramMatrix.toArray.head
         } catch {
             case _: Throwable =>
@@ -124,4 +126,25 @@ object MathUtils {
     def sigmoid(z: Double): Double = {
         round8(1.0 / (1.0 + math.pow(math.E, -z)))
     }
+
+    /**
+      * TODO
+      * LSQR: 迭代找最小二乘，需要避免某一列 / 某一行的scale和别人不一样 （每一列最好归一化）
+      *
+      * Lanczos 方法： 将对称矩阵通过正交相似变换成对称三对角矩阵的算法 【求一个矩阵的正交基】，这个算法能保留矩阵的稀疏性
+      * 考虑方程 B * x = b, V = {v1, .. , vm} 是n维空间中m个无关向量，想找 (B * x - b) 正交 vi 的解，
+      * 令 xm = Vm * ym，其中ym为m*1的实向量，则有
+      * (Vm.T * B * Vm)ym = Vm.T * b
+      * 假设上式有唯一解，则通过解这个可以得到ym，从而得到xm，
+      * Lanczos有一套构造向量 {v1, .., vm} 的方法，使得矩阵 Vm.T * B * Vm 具有三对角形式
+      * v1 = b / β1, β1 = ||b||, v0 = 0,
+      * for i = 1, 2, ..
+      *     wi = B * vi - βi * vi-1
+      *     αi = vi.T * wi
+      *     βi+1 = ||vi+1||, 不能存在这样的βi+1则停止
+      *     vi+1 = (wi - αi * vi) / βi+1
+      * 等价于: B * Vm = Vm * Tm + βm+1(0, .., 0, vm+1), 其中 Tm = ([α1, β1, 0, .., 0], [β2, α2, β3, .., 0])
+      * Vm.T * B * Vm = Vm.T * (Vm * Tm + βm+1(0, .., 0, vm+1)) = Vm.T * Vm * Tm + βm+1 * Vm.T * (0, .., 0, vm+1)
+      * => Tm * ym = Vm.T * b = β1 * (1, 0, .., 0).T
+      */
 }

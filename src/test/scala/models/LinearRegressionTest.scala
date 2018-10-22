@@ -21,7 +21,7 @@ class LinearRegressionTest extends FunSuite {
         // ArraySeq(0.9141094802164513, 0.9841689724852887, 1.093249296032912, 0.977351600512459, 0.984631493769486, 0.10429043447363284)
         // println(models.w)
         // 2.158E-4
-        // println(models.fitError)
+        // println(models.fitError.last)
         val predictions = models.predict(x, y)
         // List(35.998822637751424, 16.997328071358403, 14.009943912188987, 18.998609705768803, 154.00024994110674, 13.993614419848747, 18.00143131201925)
         // println(predictions)
