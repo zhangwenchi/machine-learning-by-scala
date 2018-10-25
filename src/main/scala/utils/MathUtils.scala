@@ -1,6 +1,6 @@
 package utils
 
-import breeze.linalg.{DenseMatrix, det, inv}
+import breeze.linalg.{DenseMatrix, inv}
 
 object MathUtils {
 
@@ -147,4 +147,10 @@ object MathUtils {
       * Vm.T * B * Vm = Vm.T * (Vm * Tm + βm+1(0, .., 0, vm+1)) = Vm.T * Vm * Tm + βm+1 * Vm.T * (0, .., 0, vm+1)
       * => Tm * ym = Vm.T * b = β1 * (1, 0, .., 0).T
       */
+
+    def colsMean(x: Seq[Seq[Double]]): Seq[Double] = {
+        val sum = new Array[Double](x.head.length)
+        x.foreach(v => for (i <- v.indices) sum(i) += v(i))
+        sum.map(_ / x.length)
+    }
 }

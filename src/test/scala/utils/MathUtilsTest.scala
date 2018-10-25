@@ -70,4 +70,8 @@ class MathUtilsTest extends FunSuite {
         assert(MathUtils.sigmoid(-1) == 0.26894142)
     }
 
+    test("MathUtilsTest.colsMean") {
+        assert(MathUtils.colsMean(Seq(Seq(1.0, 3, 5), Seq(6.1, 2, 6), Seq(1.0, 4, 4))).map(MathUtils.round8) == Seq(2.7, 3, 5))
+    }
+
 }
