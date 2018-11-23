@@ -4,7 +4,7 @@ import org.scalatest.FunSuite
 
 class OptimizationTest extends FunSuite {
 
-    val (x1, y1) = (Seq(Seq(1.0, 1, 1), Seq(2.0, 1, 1), Seq(2.0, 2, 1), Seq(2.0, 2, 2)), Seq(15.0, 16, 18, 21))
+    val (x1, y1) = (Seq(Seq(1.0, 1, 1), Seq(2.0, 1, 1), Seq(2.0, 2, 1), Seq(2.0, 2, 2)), Seq(15.0, 16, 18, 30))
     val x2 = Array.ofDim[Double](100,100)
     val y2 = 0.0 until 100.0 by 1
 
@@ -19,5 +19,9 @@ class OptimizationTest extends FunSuite {
             }
         }
         println(Optimization.conjugateGradient(x2.toSeq.map(_.toSeq), y2))
+    }
+
+    test("Optimization.gradientDescent") {
+        println(Optimization.gradientDescent(x1, y1))
     }
 }

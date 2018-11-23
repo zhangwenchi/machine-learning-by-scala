@@ -1,6 +1,7 @@
 package utils
 
 import breeze.linalg.{DenseMatrix, trace}
+import utils.NormalizationType.NormalizationType
 
 object Optimization {
 
@@ -8,6 +9,49 @@ object Optimization {
     def FrobeniusNorm(A: DenseMatrix[Double]): Double = {
         math.sqrt(trace(A.t * A))
     }
+
+    def fitResult(beta: Seq[Double], x: Seq[Seq[Double]]): Seq[Double] = {
+        x.map(v => v.zip(beta).map(t => t._1 * t._2).sum)
+    }
+
+    /**
+      * 梯度下降法
+      * @return 系数
+      */
+    def gradientDescent(x: Seq[Seq[Double]], y: Seq[Double], maxIteration: Int = 10000, tol: Double = 1e-8,
+                        normMethod: NormalizationType = NormalizationType.Max, alpha: Double = 0.1): Seq[Double] = {
+        val xNorm = NormalizationMethod.normalizeByColumn(x.map(1.0 +: _), normMethod)
+        def computeGradient(x: Seq[Seq[Double]], y: Seq[Double], beta: Seq[Double]): Seq[Double] = {
+            val base = new Array[Double](y.length)
+            for (j <- y.indices) {
+                for (i <- beta.indices) base(j) += beta(i) * x(j)(i)
+            }
+
+            for (i <- beta.indices) base(i) -= y(i)
+
+            val gradient = new Array[Double](x.head.length)
+            for (i <- beta.indices) {
+                for (j <- y.indices) gradient(i) += x(j)(i) * base(j)
+            }
+            gradient.map(v => v / y.length * 2)
+        }
+        def updateBeta(beta: Seq[Double], gradient: Seq[Double], alpha: Double): Seq[Double] = {
+            beta.zip(gradient).map(v => v._1 - alpha * v._2)
+        }
+
+        var i = 0
+        var beta: Seq[Double] = List.fill(xNorm.head.length)(1.0)
+
+        while (i < maxIteration && Evaluation.calculateRegressionError(fitResult(beta, xNorm), y, "rmse") > tol) {
+            beta = updateBeta(beta, computeGradient(xNorm, y, beta), alpha)
+            i += 1
+        }
+
+        val maxValue = 1.0 +: x.transpose.map(_.max)
+        beta.zip(maxValue).map(v => v._1 / v._2).map(MathUtils.round8)
+    }
+
+
 
     /**
       * 共轭梯度下降法
