@@ -24,4 +24,12 @@ class OptimizationTest extends FunSuite {
     test("Optimization.gradientDescent") {
         println(Optimization.gradientDescent(x1, y1))
     }
+
+    test("Optimization.stochasticGradientDescent") {
+        println(Optimization.stochasticGradientDescent(x1, y1, tol = 0, maxIteration = 1000))
+    }
+
+    test("Optimization.miniBatchGradientDescent") {
+        println(Optimization.miniBatchGradientDescent(x1, y1, tol = 0, batch = 3))
+    }
 }

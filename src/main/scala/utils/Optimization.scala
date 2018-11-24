@@ -21,23 +21,6 @@ object Optimization {
     def gradientDescent(x: Seq[Seq[Double]], y: Seq[Double], maxIteration: Int = 10000, tol: Double = 1e-8,
                         normMethod: NormalizationType = NormalizationType.Max, alpha: Double = 0.1): Seq[Double] = {
         val xNorm = NormalizationMethod.normalizeByColumn(x.map(1.0 +: _), normMethod)
-        def computeGradient(x: Seq[Seq[Double]], y: Seq[Double], beta: Seq[Double]): Seq[Double] = {
-            val base = new Array[Double](y.length)
-            for (j <- y.indices) {
-                for (i <- beta.indices) base(j) += beta(i) * x(j)(i)
-            }
-
-            for (i <- beta.indices) base(i) -= y(i)
-
-            val gradient = new Array[Double](x.head.length)
-            for (i <- beta.indices) {
-                for (j <- y.indices) gradient(i) += x(j)(i) * base(j)
-            }
-            gradient.map(v => v / y.length * 2)
-        }
-        def updateBeta(beta: Seq[Double], gradient: Seq[Double], alpha: Double): Seq[Double] = {
-            beta.zip(gradient).map(v => v._1 - alpha * v._2)
-        }
 
         var i = 0
         var beta: Seq[Double] = List.fill(xNorm.head.length)(1.0)
@@ -51,7 +34,41 @@ object Optimization {
         beta.zip(maxValue).map(v => v._1 / v._2).map(MathUtils.round8)
     }
 
+    /**
+      * 随机梯度下降法
+      */
+    def stochasticGradientDescent(x: Seq[Seq[Double]], y: Seq[Double], maxIteration: Int = 100, tol: Double = 1e-8,
+                        normMethod: NormalizationType = NormalizationType.Max, alpha: Double = 0.1): Seq[Double] = {
+        miniBatchGradientDescent(x, y, maxIteration, tol, normMethod, alpha, 1)
+    }
 
+    /**
+      * 批量梯度下降
+      */
+    def miniBatchGradientDescent(x: Seq[Seq[Double]], y: Seq[Double], maxIteration: Int = 100, tol: Double = 1e-8,
+                                 normMethod: NormalizationType = NormalizationType.Max, alpha: Double = 0.1, batch: Int = 2): Seq[Double] = {
+        val xNorm = NormalizationMethod.normalizeByColumn(x.map(1.0 +: _), normMethod)
+
+        var i = 0
+        var beta: Seq[Double] = List.fill(xNorm.head.length)(1.0)
+
+        while (i < maxIteration && Evaluation.calculateRegressionError(fitResult(beta, xNorm), y, "rmse") > tol) {
+            var j = 0
+            while (j <= xNorm.length - batch && Evaluation.calculateRegressionError(fitResult(beta, xNorm), y, "rmse") > tol) {
+                beta = updateBeta(beta, computeGradient(xNorm.slice(j, j + batch), y.slice(j, j + batch), beta), alpha)
+                j += batch
+            }
+            j = y.length
+            while (j >= batch && Evaluation.calculateRegressionError(fitResult(beta, xNorm), y, "rmse") > tol) {
+                beta = updateBeta(beta, computeGradient(xNorm.slice(j - batch, j), y.slice(j - batch, j), beta), alpha)
+                j -= batch
+            }
+            i += 1
+        }
+
+        val maxValue = 1.0 +: x.transpose.map(_.max)
+        beta.zip(maxValue).map(v => v._1 / v._2).map(MathUtils.round8)
+    }
 
     /**
       * 共轭梯度下降法
@@ -77,5 +94,24 @@ object Optimization {
             p = r + beta * p
         }
         c.toArray
+    }
+
+    def computeGradient(x: Seq[Seq[Double]], y: Seq[Double], beta: Seq[Double]): Seq[Double] = {
+        val base = new Array[Double](y.length)
+        for (j <- y.indices) {
+            for (i <- beta.indices) base(j) += beta(i) * x(j)(i)
+        }
+
+        for (i <- base.indices) base(i) -= y(i)
+
+        val gradient = new Array[Double](x.head.length)
+        for (i <- beta.indices) {
+            for (j <- y.indices) gradient(i) += x(j)(i) * base(j)
+        }
+        gradient.map(v => v / y.length * 2)
+    }
+
+    def updateBeta(beta: Seq[Double], gradient: Seq[Double], alpha: Double): Seq[Double] = {
+        beta.zip(gradient).map(v => v._1 - alpha * v._2)
     }
 }
